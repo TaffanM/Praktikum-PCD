@@ -101,7 +101,7 @@ class ShowImage(QMainWindow):
     # Praktek A2
     #
     def loadClicked(self):
-        self.image = cv2.imread('kidney-diagram.png')
+        self.image = cv2.imread('img/kidney-diagram.png')
         self.displayImage(1)
 
     def saveClicked(self):
@@ -371,8 +371,8 @@ class ShowImage(QMainWindow):
     # Praktek C2
     #
     def operasiAND(self):
-        image1 = cv2.imread('01.png', 1)
-        image2 = cv2.imread('1.jpg', 1)
+        image1 = cv2.imread('img/01.png', 1)
+        image2 = cv2.imread('img/1.jpg', 1)
         image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
         and_op = cv2.bitwise_and(image1, image2)
@@ -382,8 +382,8 @@ class ShowImage(QMainWindow):
         cv2.waitKey(0)
 
     def operasiOR(self):
-        image1 = cv2.imread('01.png', 1)
-        image2 = cv2.imread('1.jpg', 1)
+        image1 = cv2.imread('img/01.png', 1)
+        image2 = cv2.imread('img/1.jpg', 1)
         image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
         or_op = cv2.bitwise_or(image1, image2)
@@ -393,8 +393,8 @@ class ShowImage(QMainWindow):
         cv2.waitKey(0)
 
     def operasiXOR(self):
-        image1 = cv2.imread('01.png', 1)
-        image2 = cv2.imread('1.jpg', 1)
+        image1 = cv2.imread('img/01.png', 1)
+        image2 = cv2.imread('img/1.jpg', 1)
         image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
         xor_op = cv2.bitwise_xor(image1, image2)
@@ -407,8 +407,8 @@ class ShowImage(QMainWindow):
     # Praktek C1
     #
     def aritmatika(self):
-        image1 = cv2.imread('01.png', 0)
-        image2 = cv2.imread('1.jpg', 0)
+        image1 = cv2.imread('img/01.png', 0)
+        image2 = cv2.imread('img/1.jpg', 0)
         image_plus = image1 + image2
         image_minus = image1 - image2
         cv2.imshow('Image 1 Original', image1)
@@ -418,8 +418,8 @@ class ShowImage(QMainWindow):
         cv2.waitKey(0)
 
     def aritmatikaKali(self):
-        image1 = cv2.imread('01.png', 0)
-        image2 = cv2.imread('1.jpg', 0)
+        image1 = cv2.imread('img/01.png', 0)
+        image2 = cv2.imread('img/1.jpg', 0)
         image_mul = image1 * image2
         image_div = image1 / image2
         cv2.imshow('Image 1 Original', image1)
@@ -492,7 +492,7 @@ class ShowImage(QMainWindow):
         plt.show()
 
     def medianFilter(self):
-        img1 = cv2.imread('1.jpg', cv2.IMREAD_UNCHANGED)
+        img1 = cv2.imread('img/1.jpg', cv2.IMREAD_UNCHANGED)
         gray_scale = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 
         img_out = gray_scale.copy()
@@ -514,7 +514,7 @@ class ShowImage(QMainWindow):
         plt.show()
 
     def maxFilter(self):
-        img1 = cv2.imread('kidney-diagram.png', cv2.IMREAD_UNCHANGED)
+        img1 = cv2.imread('img/kidney-diagram.png', cv2.IMREAD_UNCHANGED)
         gray_scale = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 
         img_out = gray_scale.copy()
@@ -550,7 +550,7 @@ class ShowImage(QMainWindow):
 
         img = np.array([[y[j] * 127 for j in range(256)] for i in range(256)], dtype=np.uint8)
         plt.imshow(img)
-        img = cv2.imread('1.jpg', 0)
+        img = cv2.imread('img/1.jpg', 0)
         dft = cv2.dft(np.float32(img), flags=cv2.DFT_COMPLEX_OUTPUT)
         dft_shift = np.fft.fftshift(dft)
 
@@ -605,7 +605,7 @@ class ShowImage(QMainWindow):
         img = np.array([[y[j] * 127 for j in range(256)] for i in range(256)], dtype=np.uint8)
         plt.imshow(img)
 
-        img = cv2.imread('1.jpg', 0)
+        img = cv2.imread('img/1.jpg', 0)
         dft = cv2.dft(np.float32(img), flags=cv2.DFT_COMPLEX_OUTPUT)
         dft_shift = np.fft.fftshift(dft)
         magnitude_spectrum = 20 * np.log((cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1])))
@@ -648,7 +648,7 @@ class ShowImage(QMainWindow):
     # Praktek F1
     #
     def deteksiSobel(self):
-        img = cv2.imread('1.jpg', cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread('img/1.jpg', cv2.IMREAD_GRAYSCALE)
 
         sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
         sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
@@ -666,7 +666,7 @@ class ShowImage(QMainWindow):
         plt.show()
 
     def deteksiPrewit(self):
-        img = cv2.imread('1.jpg', cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread('img/1.jpg', cv2.IMREAD_GRAYSCALE)
 
         sobel_x = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])
         sobel_y = np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]])
@@ -711,7 +711,7 @@ class ShowImage(QMainWindow):
             [1, 3, 5, 3, 1],
             [0, 1, 2, 1, 0]
         ])
-        img = cv2.imread('kidney-diagram.png', cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread('img/kidney-diagram.png', cv2.IMREAD_GRAYSCALE)
 
         hasil = konvolusi.konvolusi(img, kernelGaussian)
         hasil_norm = cv2.normalize(hasil, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8UC1)
@@ -801,7 +801,7 @@ class ShowImage(QMainWindow):
         #
 
     def morfologi(self):
-        img = cv2.imread('kidney-diagram.png', cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread('img/kidney-diagram.png', cv2.IMREAD_GRAYSCALE)
         ret, img_bin = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
         strel = cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5))
         img_eroded = cv2.erode(img_bin, strel)
@@ -821,7 +821,7 @@ class ShowImage(QMainWindow):
         #
 
     def thresholdBinary(self):
-        img = cv2.imread('kidney-diagram.png')
+        img = cv2.imread('img/kidney-diagram.png')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         thresh = 127
@@ -831,7 +831,7 @@ class ShowImage(QMainWindow):
         cv2.imshow('Binary Thresholding', thresh1)
 
     def thresholdBinaryInvers(self):
-        img = cv2.imread('kidney-diagram.png')
+        img = cv2.imread('img/kidney-diagram.png')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         thresh = 127
@@ -841,7 +841,7 @@ class ShowImage(QMainWindow):
         cv2.imshow('Inverse Binary Thresholding', thresh2)
 
     def thresholdTrunc(self):
-        img = cv2.imread('kidney-diagram.png')
+        img = cv2.imread('img/kidney-diagram.png')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         thresh = 127
@@ -851,7 +851,7 @@ class ShowImage(QMainWindow):
         cv2.imshow('Truncated Thresholding', thresh3)
 
     def thresholdToZero(self):
-        img = cv2.imread('kidney-diagram.png')
+        img = cv2.imread('img/kidney-diagram.png')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         thresh = 127
@@ -861,7 +861,7 @@ class ShowImage(QMainWindow):
         cv2.imshow('To Zero Thresholding', thresh4)
 
     def thresholdToZeroInvers(self):
-        img = cv2.imread('kidney-diagram.png')
+        img = cv2.imread('img/kidney-diagram.png')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         thresh = 127
@@ -871,26 +871,26 @@ class ShowImage(QMainWindow):
         cv2.imshow('Inverse To Zero Thresholding', thresh5)
 
     def thresholdMean(self):
-        img = cv2.imread('q.jpg')
+        img = cv2.imread('img/q.jpg')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         imgh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 3, 2)
         cv2.imshow('Mean Thresholding', imgh)
 
     def thresholdGaussian(self):
-        img = cv2.imread('q.jpg')
+        img = cv2.imread('img/q.jpg')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         imgh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 3, 2)
         cv2.imshow('Gaussian Thresholding', imgh)
 
     def thresholdOtsu(self):
-        img = cv2.imread('q.jpg')
+        img = cv2.imread('img/q.jpg')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         T = 130
         ret, imgh = cv2.threshold(gray, T, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         cv2.imshow('Otsu Thresholding', imgh)
 
     def contour(self):
-        img = cv2.imread('contour.jpg')
+        img = cv2.imread('img/contour.jpg')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
