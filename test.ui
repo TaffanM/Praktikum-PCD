@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1043</width>
+    <width>1222</width>
     <height>692</height>
    </rect>
   </property>
@@ -94,7 +94,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1043</width>
+     <width>1222</width>
      <height>21</height>
     </rect>
    </property>
@@ -240,6 +240,26 @@
     <addaction name="actionColor_Tracking"/>
     <addaction name="actionColor_Picker"/>
    </widget>
+   <widget class="QMenu" name="menuHaar_Cascade">
+    <property name="title">
+     <string>Haar Cascade</string>
+    </property>
+    <addaction name="actionObject_Detection"/>
+    <addaction name="actionHistogram_of_Gradient"/>
+    <addaction name="actionHaar_Cascade_Face_Eye_Detection"/>
+    <addaction name="actionHaar_Cascade_Pedestrian_Detection"/>
+    <addaction name="actionCircle_Hough_Transform"/>
+    <addaction name="actionHistogram_of_Gradient_Pedestrian"/>
+   </widget>
+   <widget class="QMenu" name="menuFace_Detection">
+    <property name="title">
+     <string>Face Detection</string>
+    </property>
+    <addaction name="actionFacial_Landmark"/>
+    <addaction name="actionSwap_Face"/>
+    <addaction name="actionSwap_Face_Real_Time"/>
+    <addaction name="actionYawn_Detection"/>
+   </widget>
    <addaction name="menuOperasi_TItik"/>
    <addaction name="menuHistogram"/>
    <addaction name="menuOperasi_Geometri"/>
@@ -251,6 +271,8 @@
    <addaction name="menuThresholding"/>
    <addaction name="menuAdaptive_Thresholding"/>
    <addaction name="menuColor_Tracking"/>
+   <addaction name="menuHaar_Cascade"/>
+   <addaction name="menuFace_Detection"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOperasi_Pencerahan">
@@ -517,6 +539,56 @@
   <action name="actionColor_Picker">
    <property name="text">
     <string>Color Picker</string>
+   </property>
+  </action>
+  <action name="actionObject_Detection">
+   <property name="text">
+    <string>Object Detection</string>
+   </property>
+  </action>
+  <action name="actionHistogram_of_Gradient">
+   <property name="text">
+    <string>Histogram of Gradient</string>
+   </property>
+  </action>
+  <action name="actionHaar_Cascade_Face_Eye_Detection">
+   <property name="text">
+    <string>Haar Cascade Face and Eye Detection</string>
+   </property>
+  </action>
+  <action name="actionHaar_Cascade_Pedestrian_Detection">
+   <property name="text">
+    <string>Haar Cascade Pedestrian Detection</string>
+   </property>
+  </action>
+  <action name="actionCircle_Hough_Transform">
+   <property name="text">
+    <string>Circle Hough Transform</string>
+   </property>
+  </action>
+  <action name="actionHistogram_of_Gradient_Pedestrian">
+   <property name="text">
+    <string>Histogram of Gradient Pedestrian</string>
+   </property>
+  </action>
+  <action name="actionFacial_Landmark">
+   <property name="text">
+    <string>Facial Landmark</string>
+   </property>
+  </action>
+  <action name="actionSwap_Face">
+   <property name="text">
+    <string>Swap Face</string>
+   </property>
+  </action>
+  <action name="actionSwap_Face_Real_Time">
+   <property name="text">
+    <string>Swap Face Real Time</string>
+   </property>
+  </action>
+  <action name="actionYawn_Detection">
+   <property name="text">
+    <string>Yawn Detection</string>
    </property>
   </action>
  </widget>
