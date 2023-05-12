@@ -1,17 +1,22 @@
+import math
 import sys
+import dlib
 import cv2
+import imutils
+import numpy
 import numpy as np
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QDialog, QMainWindow, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5.uic import loadUi
-import math
 from matplotlib import pyplot as plt
+from skimage import data, exposure
+from skimage.feature import hog
+from time import sleep
+
 import konvolusi
 
-import test
-
+PREDICTOR_PATH = "shape_predictor_68_face_landmarks.dat"
 
 class ShowImage(QMainWindow):
     def __init__(self):
@@ -94,6 +99,21 @@ class ShowImage(QMainWindow):
         # Color Processing
         self.actionColor_Tracking.triggered.connect(self.colorTracking)
         self.actionColor_Picker.triggered.connect(self.colorPicker)
+
+        # Haar Cascade
+        self.actionObject_Detection.triggered.connect(self.objectDetection)
+        self.actionHistogram_of_Gradient.triggered.connect(self.HOG)
+        self.actionHaar_Cascade_Face_Eye_Detection.triggered.connect(self.HaarFaceEye)
+        self.actionHaar_Cascade_Pedestrian_Detection.triggered.connect(self.HaarPedestrian)
+        self.actionCircle_Hough_Transform.triggered.connect(self.circleHough)
+        self.actionHistogram_of_Gradient_Pedestrian.triggered.connect(self.HOGPedestrian)
+
+        # Face Detection
+        self.actionFacial_Landmark.triggered.connect(self.facialLandmark)
+        self.actionSwap_Face.triggered.connect(self.swapFace)
+        self.actionSwap_Face_Real_Time.triggered.connect(self.swapFaceRealTime)
+        self.actionYawn_Detection.triggered.connect(self.yawnDetection)
+
 
     # Pertemuan 2
 
@@ -961,6 +981,8 @@ class ShowImage(QMainWindow):
         cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
         cv2.createTrackbar("U-V", "Trackbars", 255, 255, nothing)
 
+
+
         while True:
             _, frame = cam.read()
             hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
@@ -986,6 +1008,565 @@ class ShowImage(QMainWindow):
                 break
 
         cam.release()
+        cv2.destroyAllWindows()
+
+        #
+        # Pertemuan 9
+        #
+
+        # Modul I3
+    def objectDetection(self):
+        cam = cv2.VideoCapture('img/cars1.mp4')
+        car_cascade  = cv2.CascadeClassifier('Haar-Cascade/haarcascade_car.xml')
+
+        while True:
+            ret, frame = cam.read()
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            # deteksi mobil di video
+            cars = car_cascade.detectMultiScale(gray,1.1,3)
+
+            for (x,y,w,h) in cars:
+                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),1)
+
+            cv2.imshow('video', frame)
+            if cv2.waitKey(10)&0xFF==ord('q'):
+                break
+
+        cam.release()
+        cv2.destroyAllWindows()
+
+    def HOG(self):
+        image = data.astronaut()
+
+        fd, hog_image = hog(image, orientations=8, pixels_per_cell=(16,16), cells_per_block=(1,1), visualize=True, channel_axis=-1)
+        fig, (ax1, ax2) = plt.subplots(1,2, figsize=(12, 6), sharex=True, sharey=True)
+        ax1.axis('off')
+        ax1.imshow(image, cmap=plt.cm.gray)
+        ax1.set_title('Input Image')
+
+        # Rescale gambar untuk tampilan yang lebih baik
+        hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0,10))
+
+        ax2.axis('off')
+        ax2.imshow(hog_image_rescaled, cmap=plt.cm.gray)
+        ax2.set_title('Histogram of Oriented Gradients')
+        plt.show()
+
+    def HOGPedestrian(self):
+        hog = cv2.HOGDescriptor()
+        hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+        img = cv2.imread("img/pedestrian.jpeg")
+        img = imutils.resize(img, width=min(800, img.shape[0]))
+        (regions, _) = hog.detectMultiScale(img, winStride=(4, 4), padding=(4, 4), scale=1.05)
+        for (x, y, w, h) in regions:
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        cv2.imshow("image", img)
+        cv2.waitKey()
+
+    def HaarFaceEye(self):
+        # membuat classifier muka
+        face_classifier = cv2.CascadeClassifier('Haar-Cascade/haarcascade_frontalface_default.xml')
+        eye_classifier = cv2.CascadeClassifier('Haar-Cascade/haarcascade_eye.xml')
+        image = cv2.imread('img/churchill1.jpeg')
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        faces = face_classifier.detectMultiScale(gray, 1.3, 5, minSize=(30,30))
+
+        if faces is ():
+            print('Tidak ada muka yang ditemukan')
+        for (x,y,w,h) in faces:
+            cv2.rectangle(image, (x,y), (x+w, y+h), (127, 0, 255), 2)
+            roi_gray = gray[y:y + h, x:x + w]
+            roi_color = image[y:y + h, x:x + w]
+            eyes = eye_classifier.detectMultiScale(roi_gray, scaleFactor=1.2, minNeighbors=5, minSize=(10,10))
+            for (ex, ey, ew, eh) in eyes:
+                cv2.rectangle(roi_color, (ex,ey), (ex+ew, ey+eh), (255,255,0), 2)
+            cv2.imshow('Face Detection', image)
+            cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def HaarPedestrian(self):
+        # membuat classifier badan
+        body_classifier = cv2.CascadeClassifier('Haar-Cascade/haarcascade_fullbody.xml')
+
+        cap = cv2.VideoCapture('img/pedestrian.mp4')
+        while cap.isOpened():
+            ret, frame = cap.read()
+            frame = cv2.resize(frame, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            bodies = body_classifier.detectMultiScale(gray, 1.2, 3)
+
+            for (x,y,w,h) in bodies:
+                cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,255), 2)
+                cv2.imshow('Pedestrians', frame)
+
+            if cv2.waitKey(1) == 13:
+                break
+        cap.release()
+        cv2.destroyAllWindows()
+
+    def circleHough(self):
+        img = cv2.imread('img/opencv.png',0)
+        img = cv2.medianBlur(img, 5)
+        cimg = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 20, param1=50, param2=50, minRadius=5, maxRadius=0)
+
+        circles = np.uint16(np.around(circles))
+        for i in circles[0, :]:
+            cv2.circle(cimg, (i[0], i[1]), i[2], (0, 255, 0), 2)
+            cv2.circle(cimg, (i[0], i[1]), 2, (0, 0, 255), 3)
+
+        cv2.imshow('detected circles', cimg)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    #
+    # Pertemuan 10
+    #
+    def facialLandmark(self):
+
+        predictor = dlib.shape_predictor(PREDICTOR_PATH)
+        detector = dlib.get_frontal_face_detector()
+
+        class TooManyFaces(Exception):
+            pass
+
+        class NoFaces(Exception):
+            pass
+
+        def get_landmarks(im):
+            rects = detector(im, 1)
+            if len(rects) > 1:
+                raise TooManyFaces
+            if len(rects) == 0:
+                raise NoFaces
+
+            return numpy.matrix([[p.x, p.y] for p in predictor(im, rects[0]).parts()])
+
+        def annotate_landmarks(im, landmarks):
+            im = im.copy()
+            for idx, point in enumerate(landmarks):
+                pos = (point[0, 0], point[0, 1])
+                cv2.putText(im, str(idx), pos,
+                            fontFace = cv2.FONT_HERSHEY_SCRIPT_SIMPLEX,
+                            fontScale=0.4,
+                            color=(0,0, 255)
+                            )
+                cv2.circle(im, pos, 3, color=(0, 255, 255))
+            return im
+
+        image = cv2.imread("img/churchill1.jpeg")
+        landmarks = get_landmarks(image)
+        image_with_landmarks = annotate_landmarks(image, landmarks)
+
+        cv2.imshow("Result", image_with_landmarks)
+        cv2.imwrite("image_with_landmarks.jpg", image_with_landmarks)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
+    def swapFace(self):
+        SCALE_FACTOR = 2
+        FEATHER_AMOUNT = 11
+        FACE_POINTS = list(range(17, 68))
+        MOUTH_POINTS = list(range(48, 61))
+        RIGHT_BROW_POINTS = list(range(17, 22))
+        LEFT_BROW_POINTS = list(range(22, 27))
+        RIGHT_EYE_POINTS = list(range(36, 42))
+        LEFT_EYE_POINTS = list(range(42, 48))
+        NOSE_POINTS = list(range(27, 35))
+        JAW_POINTS = list(range(0, 17))
+
+        ALIGN_POINTS = (LEFT_BROW_POINTS + RIGHT_EYE_POINTS + LEFT_EYE_POINTS +
+                        RIGHT_BROW_POINTS + NOSE_POINTS + MOUTH_POINTS)
+
+        OVERLAY_POINTS = [
+            LEFT_EYE_POINTS + RIGHT_EYE_POINTS + LEFT_BROW_POINTS + RIGHT_BROW_POINTS,
+            NOSE_POINTS + MOUTH_POINTS
+        ]
+
+        COLOUR_CORRECT_BLUR_FRAC = 0.6
+
+        detector = dlib.get_frontal_face_detector()
+        predictor = dlib.shape_predictor(PREDICTOR_PATH)
+
+        class TooManyFaces(Exception):
+            pass
+
+        class NoFaces(Exception):
+            pass
+
+        def get_landmarks(im):
+            rects = detector(im, 1)
+
+            if len(rects) > 1:
+                raise TooManyFaces
+            if len(rects) == 0:
+                raise NoFaces
+
+            return numpy.matrix([[p.x, p.y] for p in predictor(im, rects[0]).parts()])
+
+        def annotate_landmarks(im, landmarks):
+
+            im = im.copy()
+            for idx, point in enumerate(landmarks):
+                pos = (point[0, 0], point[0, 1])
+                cv2.putText(im, str(idx), pos,
+                            fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX,
+                            fontScale=0.4,
+                            color=(0, 0, 255)
+                            )
+                cv2.circle(im, pos, 3, color=(0, 255, 255))
+            return im
+
+        def draw_convex_hull(im, points, color):
+            points = cv2.convexHull(points)
+            cv2.fillConvexPoly(im, points, color=color)
+
+        def get_face_mask(im, landmarks):
+            im = numpy.zeros(im.shape[:2], dtype=numpy.float64)
+
+            for group in OVERLAY_POINTS:
+                draw_convex_hull(im, landmarks[group], color=1)
+
+            im = numpy.array([im, im, im]).transpose((1, 2, 0))
+            im = (cv2.GaussianBlur(im, (FEATHER_AMOUNT, FEATHER_AMOUNT), 0) > 0) * 1.0
+            im = cv2.GaussianBlur(im, (FEATHER_AMOUNT, FEATHER_AMOUNT), 0)
+
+            return im
+
+        def transformation_from_points(points1, points2):
+            points1 = points1.astype(numpy.float64)
+            points2 = points2.astype(numpy.float64)
+            c1 = numpy.mean(points1, axis=0)
+            c2 = numpy.mean(points2, axis=0)
+            points1 -= c1
+            points2 -= c2
+            s1 = numpy.std(points1)
+            s2 = numpy.std(points2)
+            points1 /= s1
+            points2 /= s2
+            U, S, Vt = numpy.linalg.svd(points1.T * points2)
+            R = (U * Vt).T
+            return numpy.vstack([numpy.hstack(((s2 / s1) * R,
+                                               c2.T - (s2 / s1) * R * c1.T)),
+                                 numpy.matrix([0., 0., 1.])])
+
+        def read_im_and_landmarks(image):
+            im = image
+            im = cv2.resize(im, None, fx=1, fy=1, interpolation=cv2.INTER_LINEAR)
+            im = cv2.resize(im, (im.shape[1] * SCALE_FACTOR,
+                                 im.shape[0] * SCALE_FACTOR))
+            s = get_landmarks(im)
+            return im, s
+
+        def warp_im(im, M, dshape):
+            output_im = numpy.zeros(dshape, dtype=im.dtype)
+            cv2.warpAffine(im,
+                           M[:2],
+                           (dshape[1], dshape[0]),
+                           dst=output_im,
+                           borderMode=cv2.BORDER_TRANSPARENT,
+                           flags=cv2.WARP_INVERSE_MAP)
+            return output_im
+
+        def correct_colours(im1, im2, landmarks1):
+            blur_amount = COLOUR_CORRECT_BLUR_FRAC * numpy.linalg.norm(
+                numpy.mean(landmarks1[LEFT_EYE_POINTS], axis=0) -
+                numpy.mean(landmarks1[RIGHT_EYE_POINTS], axis=0))
+            blur_amount = int(blur_amount)
+            if blur_amount % 2 == 0:
+                blur_amount += 1
+            im1_blur = cv2.GaussianBlur(im1, (blur_amount, blur_amount), 0)
+            im2_blur = cv2.GaussianBlur(im2, (blur_amount, blur_amount), 0)
+            # Avoid divide-by-zero errors.
+            im2_blur += (128 * (im2_blur <= 1.0)).astype(im2_blur.dtype)
+            return (im2.astype(numpy.float64) * im1_blur.astype(numpy.float64) /
+                    im2_blur.astype(numpy.float64))
+
+        def swappy(image1, image2):
+            im1, landmarks1 = read_im_and_landmarks(image1)
+            im2, landmarks2 = read_im_and_landmarks(image2)
+            M = transformation_from_points(landmarks1[ALIGN_POINTS],
+                                           landmarks2[ALIGN_POINTS])
+            mask = get_face_mask(im2, landmarks2)
+            warped_mask = warp_im(mask, M, im1.shape)
+            combined_mask = numpy.max([get_face_mask(im1, landmarks1),
+                                       warped_mask],
+                                      axis=0)
+            warped_im2 = warp_im(im2, M, im1.shape)
+            warped_corrected_im2 = correct_colours(im1, warped_im2, landmarks1)
+            output_im = im1 * (1.0 - combined_mask) + warped_corrected_im2 * combined_mask
+            cv2.imwrite('output.jpg', output_im)
+            image = cv2.imread('output.jpg')
+            return image
+
+
+
+
+        ## Enter the paths to your input images here
+        image1 = cv2.imread('img/haaland.jpeg')
+        image2 = cv2.imread('img/churchill1.jpeg')
+        swapped = swappy(image1, image2)
+        cv2.imshow('Face Swap 1', swapped)
+        swapped = swappy(image2, image1)
+        cv2.imshow('Face Swap 2', swapped)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def swapFaceRealTime(self):
+        SCALE_FACTOR = 1
+        FEATHER_AMOUNT = 11
+        FACE_POINTS = list(range(17, 68))
+        MOUTH_POINTS = list(range(48, 61))
+        RIGHT_BROW_POINTS = list(range(17, 22))
+        LEFT_BROW_POINTS = list(range(22, 27))
+        RIGHT_EYE_POINTS = list(range(36, 42))
+        LEFT_EYE_POINTS = list(range(42, 48))
+        NOSE_POINTS = list(range(27, 35))
+        JAW_POINTS = list(range(0, 17))
+
+        ALIGN_POINTS = (LEFT_BROW_POINTS + RIGHT_EYE_POINTS + LEFT_EYE_POINTS +
+                        RIGHT_BROW_POINTS + NOSE_POINTS + MOUTH_POINTS)
+
+        OVERLAY_POINTS = [
+            LEFT_EYE_POINTS + RIGHT_EYE_POINTS + LEFT_BROW_POINTS + RIGHT_BROW_POINTS,
+            NOSE_POINTS + MOUTH_POINTS
+        ]
+
+        COLOUR_CORRECT_BLUR_FRAC = 0.6
+        cascade_path = "Haar-Cascade/haarcascade_frontalface_default.xml"
+        cascade = cv2.CascadeClassifier(cascade_path)
+        detector = dlib.get_frontal_face_detector()
+        predictor = dlib.shape_predictor(PREDICTOR_PATH)
+
+        def get_landmarks(im, dlibOn):
+            rects = detector(im, 1)
+
+            if len(rects) > 1:
+                raise TooManyFaces
+            if len(rects) == 0:
+                raise NoFaces
+
+            return numpy.matrix([[p.x, p.y] for p in predictor(im, rects[0]).parts()])
+
+        class TooManyFaces(Exception):
+            pass
+
+        class NoFaces(Exception):
+            pass
+
+        def annotate_landmarks(im, landmarks):
+
+            im = im.copy()
+            for idx, point in enumerate(landmarks):
+                pos = (point[0, 0], point[0, 1])
+                cv2.putText(im, str(idx), pos,
+                            fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX,
+                            fontScale=0.4,
+                            color=(0, 0, 255)
+                            )
+                cv2.circle(im, pos, 3, color=(0, 255, 255))
+            return im
+
+        def draw_convex_hull(im, points, color):
+            points = cv2.convexHull(points)
+            cv2.fillConvexPoly(im, points, color=color)
+
+        def get_face_mask(im, landmarks):
+            im = numpy.zeros(im.shape[:2], dtype=numpy.float64)
+
+            for group in OVERLAY_POINTS:
+                draw_convex_hull(im, landmarks[group], color=1)
+
+            im = numpy.array([im, im, im]).transpose((1, 2, 0))
+            im = (cv2.GaussianBlur(im, (FEATHER_AMOUNT, FEATHER_AMOUNT), 0) > 0) * 1.0
+            im = cv2.GaussianBlur(im, (FEATHER_AMOUNT, FEATHER_AMOUNT), 0)
+
+            return im
+
+        def transformation_from_points(points1, points2):
+            points1 = points1.astype(numpy.float64)
+            points2 = points2.astype(numpy.float64)
+            c1 = numpy.mean(points1, axis=0)
+            c2 = numpy.mean(points2, axis=0)
+            points1 -= c1
+            points2 -= c2
+            s1 = numpy.std(points1)
+            s2 = numpy.std(points2)
+            points1 /= s1
+            points2 /= s2
+            U, S, Vt = numpy.linalg.svd(points1.T * points2)
+            R = (U * Vt).T
+            return numpy.vstack([numpy.hstack(((s2 / s1) * R, c2.T - (s2 / s1) * R * c1.T)),numpy.matrix([0., 0., 1.])])
+
+        def read_im_and_landmarks(fname):
+            im = cv2.imread(fname, cv2.IMREAD_COLOR)
+            im = cv2.resize(im, None, fx=0.35, fy=0.35,
+                            interpolation=cv2.INTER_LINEAR)
+            im = cv2.resize(im, (im.shape[1] * SCALE_FACTOR,
+                                 im.shape[0] * SCALE_FACTOR))
+            s = get_landmarks(im, dlibOn)
+            return im, s
+
+        def warp_im(im, M, dshape):
+            output_im = numpy.zeros(dshape, dtype=im.dtype)
+            cv2.warpAffine(im,
+                           M[:2],
+                           (dshape[1], dshape[0]),
+                           dst=output_im,
+                           borderMode=cv2.BORDER_TRANSPARENT,
+                           flags=cv2.WARP_INVERSE_MAP)
+            return output_im
+
+        def correct_colours(im1, im2, landmarks1):
+            blur_amount = COLOUR_CORRECT_BLUR_FRAC * numpy.linalg.norm(
+                numpy.mean(landmarks1[LEFT_EYE_POINTS], axis=0) -
+                numpy.mean(landmarks1[RIGHT_EYE_POINTS], axis=0))
+            blur_amount = int(blur_amount)
+            if blur_amount % 2 == 0:
+                blur_amount += 1
+            im1_blur = cv2.GaussianBlur(im1, (blur_amount, blur_amount), 0)
+            im2_blur = cv2.GaussianBlur(im2, (blur_amount, blur_amount), 0)
+            # Avoid divide-by-zero errors.
+            im2_blur += (128 * (im2_blur <= 1.0)).astype(im2_blur.dtype)
+            return (im2.astype(numpy.float64) * im1_blur.astype(numpy.float64) /
+                    im2_blur.astype(numpy.float64))
+
+        def face_swap(img, name):
+            s = get_landmarks(img, True)
+            if (s == "error"):
+                print("No or too many faces")
+            return img
+            im1, landmarks1 = img, s
+            im2, landmarks2 = read_im_and_landmarks(name)
+            M = transformation_from_points(landmarks1[ALIGN_POINTS],
+                                           landmarks2[ALIGN_POINTS])
+            mask = get_face_mask(im2, landmarks2)
+            warped_mask = warp_im(mask, M, im1.shape)
+            combined_mask = numpy.max([get_face_mask(im1, landmarks1),
+                                       warped_mask],
+                                      axis=0)
+            warped_im2 = warp_im(im2, M, im1.shape)
+            warped_corrected_im2 = correct_colours(im1, warped_im2, landmarks1)
+
+
+            output_im = im1 * (1.0 - combined_mask) + warped_corrected_im2 * combined_mask
+            # output_im is no longer in the expected OpenCV format so we use openCV
+            # to write the image to diks and then reload it
+            cv2.imwrite('output.jpg', output_im)
+            image = cv2.imread('output.jpg')
+            frame = cv2.resize(image, None, fx=1.5, fy=1.5,
+                               interpolation=cv2.INTER_LINEAR)
+            return image
+
+
+        cap = cv2.VideoCapture(0)
+        # Name is the image we want to swap onto ours
+        # dlibOn controls if use dlib's facial landmark detector (better)
+        # or use HAAR Cascade Classifiers (faster)
+        filter_image = "img/Churchill1.jpeg"  ### Put your image here!
+        dlibOn = False
+        while True:
+            ret, frame = cap.read()
+            # Reduce image size by 75% to reduce processing time and improve
+
+            frame = cv2.resize(frame, None, fx=0.75, fy=0.75,
+                           interpolation=cv2.INTER_LINEAR)
+        # flip image so that it's more mirror like
+            frame = cv2.flip(frame, 1)
+            cv2.imshow('Our Amazing Face Swapper', face_swap(frame, filter_image))
+            if cv2.waitKey(1) == 13:
+                break
+        cap.release()
+        cv2.destroyAllWindows()
+
+    def yawnDetection(self):
+        predictor = dlib.shape_predictor(PREDICTOR_PATH)
+        detector = dlib.get_frontal_face_detector()
+
+        def get_landmarks(im):
+            rects = detector(im, 1)
+            if len(rects) > 1:
+                raise Exception("error")
+            if len(rects) == 0:
+                raise Exception("error")
+
+            return numpy.matrix([[p.x, p.y] for p in predictor(im, rects[0]).parts()])
+
+        def annotate_landmarks(im, landmarks):
+            im = im.copy()
+            for idx, point in enumerate(landmarks):
+                pos = (point[0, 0], point[0, 1])
+                cv2.putText(im, str(idx), pos,
+                            fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX,
+                            fontScale=0.4,
+                            color=(0, 0, 255)
+                            )
+                cv2.circle(im, pos, 3, color=(0, 255, 255))
+            return im
+
+        def top_lip(landmarks):
+            top_lip_pts = []
+            for i in range(50, 53):
+                top_lip_pts.append(landmarks[i])
+            for i in range(61, 64):
+                top_lip_pts.append(landmarks[i])
+            top_lip_all_pts = np.squeeze(np.asarray(top_lip_pts))
+            top_lip_mean = np.mean(top_lip_pts, axis=0)
+            return int(top_lip_mean[:, 1])
+
+        def bottom_lip(landmarks):
+            bottom_lip_pts = []
+            for i in range(65, 68):
+                bottom_lip_pts.append(landmarks[i])
+            for i in range(56, 59):
+                bottom_lip_pts.append(landmarks[i])
+            bottom_lip_all_pts = np.squeeze(np.asarray(bottom_lip_pts))
+            bottom_lip_mean = np.mean(bottom_lip_pts, axis=0)
+            return int(bottom_lip_mean[:, 1])
+
+        def mouth_open(image):
+            landmarks = get_landmarks(image)
+            if landmarks == "error":
+                return image, 0
+            image_with_landmarks = annotate_landmarks(image, landmarks)
+            top_lip_center = top_lip(landmarks)
+            bottom_lip_center = bottom_lip(landmarks)
+            lip_distance = abs(top_lip_center - bottom_lip_center)
+            return image_with_landmarks, lip_distance
+
+        cap = cv2.VideoCapture(0)
+        yawns = 0
+        yawn_status = False
+
+        while True:
+            ret, frame = cap.read()
+            image_landmarks, lip_distance = mouth_open(frame)
+            prev_yawn_status = yawn_status
+
+            if lip_distance > 25:
+                yawn_status = True
+
+                cv2.putText(frame, "Subject is Yawning", (50, 450),
+                            cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+                output_text = " Yawn Count : " + str(yawns + 1)
+
+                cv2.putText(frame, output_text, (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+
+            else:
+                yawn_status = False
+
+            if prev_yawn_status == True and yawn_status == False:
+                yawns += 1
+
+            cv2.imshow('Live Landmarks', image_landmarks)
+            cv2.imshow('Yawn Detection', frame)
+
+            if cv2.waitKey(1) == 13:
+                break
+
+        cap.release()
         cv2.destroyAllWindows()
 
     def displayImage(self, windows=1):
