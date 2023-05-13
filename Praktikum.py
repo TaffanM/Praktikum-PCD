@@ -1465,8 +1465,8 @@ class ShowImage(QMainWindow):
         # Name is the image we want to swap onto ours
         # dlibOn controls if use dlib's facial landmark detector (better)
         # or use HAAR Cascade Classifiers (faster)
-        filter_image = "img/Churchill1.jpeg"  ### Put your image here!
-        dlibOn = False
+        filter_image = "img/xi.jpeg"  ### Put your image here!
+        dlibOn = True
         while True:
             ret, frame = cap.read()
             # Reduce image size by 75% to reduce processing time and improve
@@ -1488,21 +1488,17 @@ class ShowImage(QMainWindow):
         def get_landmarks(im):
             rects = detector(im, 1)
             if len(rects) > 1:
-                raise Exception("error")
+                return "error"
             if len(rects) == 0:
-                raise Exception("error")
-
-            return numpy.matrix([[p.x, p.y] for p in predictor(im, rects[0]).parts()])
+                return "error"
+            return np.matrix([[p.x, p.y] for p in predictor(im, rects[0]).parts()])
 
         def annotate_landmarks(im, landmarks):
             im = im.copy()
             for idx, point in enumerate(landmarks):
                 pos = (point[0, 0], point[0, 1])
-                cv2.putText(im, str(idx), pos,
-                            fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX,
-                            fontScale=0.4,
-                            color=(0, 0, 255)
-                            )
+                cv2.putText(im, str(idx), pos, fontFace=cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale=0.4,
+                            color=(0, 0, 255))
                 cv2.circle(im, pos, 3, color=(0, 255, 255))
             return im
 
@@ -1547,12 +1543,9 @@ class ShowImage(QMainWindow):
 
             if lip_distance > 25:
                 yawn_status = True
-
-                cv2.putText(frame, "Subject is Yawning", (50, 450),
-                            cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
-                output_text = " Yawn Count : " + str(yawns + 1)
-
-                cv2.putText(frame, output_text, (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+                cv2.putText(frame, "Subject is Yawning", (50, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+                output_text = " Yawn Count: " + str(yawns + 1)
+                cv2.putText(frame, output_text, (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 127), 2)
 
             else:
                 yawn_status = False
@@ -1563,7 +1556,7 @@ class ShowImage(QMainWindow):
             cv2.imshow('Live Landmarks', image_landmarks)
             cv2.imshow('Yawn Detection', frame)
 
-            if cv2.waitKey(1) == 13:
+            if cv2.waitKey(1) == 13:  # 13 is the Enter Key
                 break
 
         cap.release()
